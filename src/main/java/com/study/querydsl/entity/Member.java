@@ -7,8 +7,8 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
-import lombok.Getter;
-import lombok.Setter;
+
+import lombok.*;
 
 /**
  * Created by hyeonahlee on 2020-11-22.
@@ -16,6 +16,8 @@ import lombok.Setter;
 @Entity
 @Getter
 @Setter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@ToString(of = {"id", "username", "age"})
 public class Member {
 
     @Id
@@ -30,6 +32,14 @@ public class Member {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "team_id")
     private Team team;
+
+    public Member(String username) {
+        this(username, 0);
+    }
+
+    public Member(String username, int age) {
+        this(username, age, null);
+    }
 
     public Member(String username, int age, Team team) {
         this.username = username;

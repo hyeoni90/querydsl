@@ -1,11 +1,11 @@
 package com.study.querydsl.entity;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import lombok.Getter;
-import lombok.Setter;
+import javax.persistence.*;
+
+import lombok.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by hyeonahlee on 2020-11-22.
@@ -13,6 +13,8 @@ import lombok.Setter;
 @Entity
 @Getter
 @Setter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@ToString(of = {"id", "name"})
 public class Team {
 
     @Id
@@ -20,4 +22,12 @@ public class Team {
     @Column(name = "team_id")
     private Long id;
 
+    private String name;
+
+    @OneToMany(mappedBy = "team")
+    List<Member> members = new ArrayList<>();
+
+    public Team(String name) {
+        this.name = name;
+    }
 }
