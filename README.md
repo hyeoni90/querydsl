@@ -52,5 +52,17 @@ compileQuerydsl {
 ## h2 Database
 
 
+## 실행
+cleanQuerydslSourcesDir > compileQuerydslJava
+
+## QueryDsl
+
+결과 조회
+* fetch(): 리스트 조회, 데이터가 없으면 빈 리스트를 반환 한다.
+* fetchOne(): 단건 조회 (결과 없으면 null, 결과 2 이상이면 NonUniqueResultException)
+* fetchFirst(): limit(1).fetchOn() 
+* fetchResults(): 페이징 정보 포함, total count 쿼리 추가 실행 => 성능 때문에 contents, total count 가 다를경우 쿼리를 나눠서 실행한다! 
+* fetchCount(): count 쿼리로 변경해서 count 수 조회  
+
 ## References
 * QueryDSL Documentation[http://www.querydsl.com/static/querydsl/4.4.0/reference/html_single/]
