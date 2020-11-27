@@ -1,10 +1,10 @@
 package com.study.querydsl;
 
+import static com.study.querydsl.entity.QMember.member;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.study.querydsl.entity.Member;
-import com.study.querydsl.entity.QMember;
 import com.study.querydsl.entity.Team;
 import javax.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,6 +22,8 @@ class QuerydslBasicTest {
 
     @Autowired
     EntityManager em;
+
+    JPAQueryFactory queryFactory = new JPAQueryFactory(em);
 
     @BeforeEach
     public void before() {
@@ -55,13 +57,10 @@ class QuerydslBasicTest {
 
     @Test
     void startQuerydsl() {
-        JPAQueryFactory queryFactory = new JPAQueryFactory(em);
-        QMember m = new QMember("m");
-
         Member findMember = queryFactory
-            .select(m)
-            .from(m)
-            .where(m.username.eq("member1"))
+            .select(member)
+            .from(member)
+            .where(member.username.eq("member1"))
             .fetchOne();
 
         assertThat(findMember.getUsername()).isEqualTo("member1");
