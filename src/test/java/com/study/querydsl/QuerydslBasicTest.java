@@ -268,4 +268,23 @@ class QuerydslBasicTest {
         assertThat(teamB.get(team.name)).isEqualTo("teamB");
         assertThat(teamB.get(member.age.avg())).isEqualTo(35); // (30 + 40) / 2
     }
+
+    /**
+     * 팀 A에 소속된 모든 회원 조회
+     */
+    @Test
+    @DisplayName("Querydsl join()")
+    void join() {
+        // given, when
+        List<Member> result = queryFactory
+            .selectFrom(member)
+            .join(member.team, team)
+            .where(team.name.eq("teamA"))
+            .fetch();
+
+        // then
+        assertThat(result)
+            .extracting("username")
+            .containsExactly("member1", "member2");
+    }
 }
