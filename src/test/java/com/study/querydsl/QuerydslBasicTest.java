@@ -74,13 +74,13 @@ class QuerydslBasicTest {
 
         assertThat(findMember.getUsername()).isEqualTo("member1");
     }
-    
+
     @Test
     @DisplayName("alias 사용 ")
     void startQuerydslAlias() {
         // 같은 테이블 조인해야하는 경우, 아래와 같이 alias 해줘서 사용한다.
         QMember m1 = new QMember("m1");
-        
+
         Member findMember = queryFactory
             .select(m1)
             .from(m1)
@@ -95,7 +95,7 @@ class QuerydslBasicTest {
         // select().from() >> selectFrom()  으로 사용할 수 있다.
 //            .select(member)
 //            .from(member)
-        
+
         Member findMember = queryFactory
             .selectFrom(member)
             .where(member.username.eq("member1")
@@ -161,9 +161,7 @@ class QuerydslBasicTest {
     }
 
     /**
-     * 회원 정렬 순서
-     * 1. 회원 나이 내림차순(DESC)
-     * 2. 회원 이름 올림차순(ASC) (단, 회원 이름이 없으면 마지막에 출력 nulls last)
+     * 회원 정렬 순서 1. 회원 나이 내림차순(DESC) 2. 회원 이름 올림차순(ASC) (단, 회원 이름이 없으면 마지막에 출력 nulls last)
      */
     @Test
     void sort() {
@@ -289,9 +287,8 @@ class QuerydslBasicTest {
     }
 
     /**
-     * 세타 조인 (연관관계가 없는 필드로 조인) => 외부 조인 불가능! but, hibernate 최신 버전에서는 on 사용해서 외부 조인 가능
-     * 쿼리 실행되는 것 확인해볼 것  cross
-     *
+     * 세타 조인 (연관관계가 없는 필드로 조인) => 외부 조인 불가능! but, hibernate 최신 버전에서는 on 사용해서 외부 조인 가능 쿼리 실행되는 것 확인해볼 것  cross
+     * <p>
      * 회원의 이름이 팀 이름과 같은 회원 조회
      */
     @Test
@@ -310,5 +307,43 @@ class QuerydslBasicTest {
         assertThat(result)
             .extracting("username")
             .containsExactly("teamA", "teamB");
+    }
+
+    /**
+     * ex) 회원과 팀을 조인하면서, 팀 이름이 TEAMA인 팀만, 조인, 회원은 모두 조회 - JPQL: select m, t from Member m left join m.team t on t.name =
+     * 'teamA'
+     */
+    @Test
+    @DisplayName("Querydsl join on")
+    void join_on_filtering() {
+        List<Tuple> result = queryFactory
+            .select(member, team)
+            .from(member)
+            .leftJoin(member.team, team).on(team.name.eq("teamA"))
+            .fetch();
+
+        for (Tuple tuple : result) {
+            System.out.println("tuple = " + tuple);
+        }
+    }
+
+    /**
+     * 연관관게 없는 엔티티 외부 조인 회원의 이름이 팀 이름과 같은 대상 조인
+     */
+    @Test
+    void join_on_no_relation() {
+        em.persist(new Member("teamA"));
+        em.persist(new Member("teamB"));
+        em.persist(new Member("teamC"));
+
+        List<Tuple> result = queryFactory
+            .select(member, team)
+            .from(member)
+            .leftJoin(team).on(member.username.eq(team.name))
+            .fetch();
+
+        for (Tuple tuple : result) {
+            System.out.println("tuple = " + tuple);
+        }
     }
 }
