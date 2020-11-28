@@ -64,5 +64,21 @@ cleanQuerydslSourcesDir > compileQuerydslJava
 * fetchResults(): 페이징 정보 포함, total count 쿼리 추가 실행 => 성능 때문에 contents, total count 가 다를경우 쿼리를 나눠서 실행한다! 
 * fetchCount(): count 쿼리로 변경해서 count 수 조회  
 
+ON 절을 활용한 조인 (JPA 2.1 부터 지원)
+- 조인 대상 필터링
+    - 외부 조인이 아니라 내부조인 (inner join) 사용 시 where 절에서 필터링 하는 것과 기능이 동일하다
+     inner join 경우 where 절로 해결하고, 정말 외부 조인이 필요한 경우에만 사용하자!
+   ```java
+   List<Tuple> result = queryFactory
+       .select(member, team)
+       .from(member)
+       // 동일함.
+       //.join(member.team, team).on(team.name.eq("teamA"))
+       .join(member.team, team)
+       .where(team.name.eq("teamA"))
+       .fetch();
+   ```
+- 연관관계 없는 엔티티 외부 조인 (주로 많이 쓰임)
+
 ## References
 * QueryDSL Documentation[http://www.querydsl.com/static/querydsl/4.4.0/reference/html_single/]
