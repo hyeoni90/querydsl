@@ -287,4 +287,28 @@ class QuerydslBasicTest {
             .extracting("username")
             .containsExactly("member1", "member2");
     }
+
+    /**
+     * 세타 조인 (연관관계가 없는 필드로 조인) => 외부 조인 불가능! but, hibernate 최신 버전에서는 on 사용해서 외부 조인 가능
+     * 쿼리 실행되는 것 확인해볼 것  cross
+     *
+     * 회원의 이름이 팀 이름과 같은 회원 조회
+     */
+    @Test
+    @DisplayName("Querydsl theta join()")
+    void theta_join() {
+        em.persist(new Member("teamA"));
+        em.persist(new Member("teamB"));
+        em.persist(new Member("teamC"));
+
+        List<Member> result = queryFactory
+            .select(member)
+            .from(member, team)
+            .where(member.username.eq(team.name))
+            .fetch();
+
+        assertThat(result)
+            .extracting("username")
+            .containsExactly("teamA", "teamB");
+    }
 }
