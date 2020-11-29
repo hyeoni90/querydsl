@@ -12,6 +12,9 @@ import com.study.querydsl.entity.QMember;
 import com.study.querydsl.entity.Team;
 import java.util.List;
 import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.PersistenceUnit;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -28,6 +31,10 @@ class QuerydslBasicTest {
 
     @Autowired
     EntityManager em;
+
+    // 영속성 테스트
+    @PersistenceUnit
+    EntityManagerFactory emf;
 
     JPAQueryFactory queryFactory;
 
@@ -345,5 +352,38 @@ class QuerydslBasicTest {
         for (Tuple tuple : result) {
             System.out.println("tuple = " + tuple);
         }
+    }
+
+    @DisplayName("페치 조인 미적용")
+    @Test
+    void no_fetch_join() {
+        // fetch join은 영속성 컨텍스트에 있는 것들을 깔끔하게 날리고 시작한다.
+        em.flush();
+        em.clear();
+
+        Member findMember = queryFactory
+                .selectFrom(QMember.member)
+                .where(QMember.member.username.eq("member1"))
+                .fetchOne();
+
+        boolean loaded = emf.getPersistenceUnitUtil().isLoaded(findMember.getTeam());
+        assertThat(loaded).as("페치 조인 미적용 ").isFalse();
+    }
+
+    @DisplayName("페치 조인 적용")
+    @Test
+    void no_fetch_join() {
+        // fetch join은 영속성 컨텍스트에 있는 것들을 깔끔하게 날리고 시작한다.
+        em.flush();
+        em.clear();
+
+        Member findMember = queryFactory
+                .selectFrom(QMember.member)
+                .join(member.team, team).fetchJoin()
+                .where(QMember.member.username.eq("member1"))
+                .fetchOne();
+
+        boolean loaded = emf.getPersistenceUnitUtil().isLoaded(findMember.getTeam());
+        assertThat(loaded).as("페치 조인 적용 ").isTrue();
     }
 }
