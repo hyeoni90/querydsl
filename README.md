@@ -80,5 +80,8 @@ ON 절을 활용한 조인 (JPA 2.1 부터 지원)
    ```
 - 연관관계 없는 엔티티 외부 조인 (주로 많이 쓰임)
 
+서브 쿼리
+- JPAExpressions 사용
+
 ## References
 * QueryDSL Documentation[http://www.querydsl.com/static/querydsl/4.4.0/reference/html_single/]
