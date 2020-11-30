@@ -7,10 +7,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.Tuple;
+import com.querydsl.core.types.ExpressionUtils;
+import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberExpression;
+import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import com.study.querydsl.dto.MemberDto;
+import com.study.querydsl.dto.UserDto;
 import com.study.querydsl.entity.Member;
 import com.study.querydsl.entity.QMember;
 import com.study.querydsl.entity.Team;
@@ -18,7 +23,6 @@ import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.PersistenceUnit;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -584,6 +588,139 @@ class QuerydslBasicTest {
 
             System.out.println("username = " + username);
             System.out.println("age = " + age);
+        }
+    }
+
+    /**
+     * 순수 JPA 에서 DTO를 조회할 때는 new 명령어를 사용해야 함. (DTO의 패키지 이름을 다 적어줘야함...)
+     * 생성자 방식만 지원!
+     *
+     * ex) com.study.querydsl.dto.MemberDto(m.username, m.age)
+     */
+    @Test
+    void findDtoByJPQL() {
+        List<MemberDto> result = em
+            .createQuery("select new com.study.querydsl.dto.MemberDto(m.username, m.age) from Member m", MemberDto.class)
+            .getResultList();
+
+        for (MemberDto memberDto : result) {
+            System.out.println("memberDto = " + memberDto);
+        }
+    }
+
+    /**
+     * Querydsl 빈 생성(bean population) : 결과를 DTO 반환할 때 사용, 3가지 방법 지원.
+     *  - 프로퍼티 접근
+     *  - 필드 직접 접근
+     *  - 생성자 사용
+     *
+     *  1) 프로퍼티 접근
+     */
+    @Test
+    void findDtoByQuerydslSetter() {
+        List<MemberDto> result = queryFactory
+            .select(Projections.bean(MemberDto.class,
+                member.username,
+                member.age))
+            .from(member)
+            .fetch();
+
+        for (MemberDto memberDto : result) {
+            System.out.println("memberDto = " + memberDto);
+        }
+    }
+
+    /**
+     * Querydsl 빈 생성(bean population) : 결과를 DTO 반환할 때 사용, 3가지 방법 지원.
+     *  - 프로퍼티 접근
+     *  - 필드 직접 접근
+     *  - 생성자 사용
+     *
+     *  2) 필드 직접 접근
+     */
+    @Test
+    void findDtoByField() {
+        List<MemberDto> result = queryFactory
+            .select(Projections.fields(MemberDto.class,
+                member.username,
+                member.age))
+            .from(member)
+            .fetch();
+
+        for (MemberDto memberDto : result) {
+            System.out.println("memberDto = " + memberDto);
+        }
+    }
+
+    /**
+     * Querydsl 빈 생성(bean population) : 결과를 DTO 반환할 때 사용, 3가지 방법 지원.
+     *  - 프로퍼티 접근
+     *  - 필드 직접 접근
+     *  - 생성자 사용
+     *
+     *  2) 생성자 사용
+     */
+    @Test
+    void findDtoByConstructor() {
+        List<MemberDto> result = queryFactory
+            .select(Projections.constructor(MemberDto.class,
+                member.username,
+                member.age))
+            .from(member)
+            .fetch();
+
+        for (MemberDto memberDto : result) {
+            System.out.println("memberDto = " + memberDto);
+        }
+    }
+
+    @Test
+    void findUserDtoByField() {
+        List<UserDto> result = queryFactory
+            .select(Projections.fields(UserDto.class,
+                member.username.as("name"),
+                member.age))
+            .from(member)
+            .fetch();
+
+        for (UserDto userDto : result) {
+            System.out.println("memberDto = " + userDto);
+        }
+    }
+
+    @Test
+    void findUserDto() {
+        QMember memberSub = new QMember("memberSub");
+
+        List<UserDto> result = queryFactory
+            .select(Projections.fields(UserDto.class,
+                member.username.as("name"),
+                ExpressionUtils.as(
+                    JPAExpressions
+                        .select(memberSub.age.max())
+                        .from(memberSub), "age")
+            ))
+            .from(member)
+            .fetch();
+
+        for (UserDto userDto : result) {
+            System.out.println("memberDto = " + userDto);
+        }
+    }
+
+    @Test
+    void findUserDtoByConstuctor() {
+        QMember memberSub = new QMember("memberSub");
+
+        List<UserDto> result = queryFactory
+            .select(Projections.constructor(UserDto.class,
+                member.username,
+                member.age))
+            .from(member)
+            .fetch();
+
+        for (UserDto userDto : result) {
+            System.out.println("memberDto = " + userDto);
         }
     }
 }
