@@ -82,6 +82,17 @@ ON 절을 활용한 조인 (JPA 2.1 부터 지원)
 
 서브 쿼리
 - JPAExpressions 사용
+- JPA JPQL 서브쿼리의 한계점
+    - from절의 서브쿼리(인라인 뷰)는 지원하지 않는다. Querydsl도 지원하지 않는다.
+    - hibernate 구현체를 사용하면 select 절의 서브쿼리는 지원한다.
+    - Querydsl hibernate 구현체를 사용하면 select절의 서브쿼리를 지원한다.
+    
+    - 해결방안)
+         ```
+        1. subquery를 join으로 변경한다. (가능 하거나 불가능할 떄도 있음)
+        2. application에서 query를 2번 분리해서 실행
+        3. nativeSQL을 사용한다.
+        ```
 
 ## References
 * QueryDSL Documentation[http://www.querydsl.com/static/querydsl/4.4.0/reference/html_single/]
