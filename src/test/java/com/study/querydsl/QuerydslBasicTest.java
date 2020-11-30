@@ -554,4 +554,36 @@ class QuerydslBasicTest {
             System.out.println("s = " + s); // s = member1_10
         }
     }
+
+    @Test
+    void simple_projection() {
+        List<String> result = queryFactory
+            .select(member.username)
+            .from(member)
+            .fetch();
+
+        for (String s : result) {
+            System.out.println("s = " + s);
+        }
+    }
+
+    /**
+     * Tuple은 repository 계층에서만 사용하고,
+     * repo 계층에서 service 계층에 던질 때에는 DTO를 사용하는 것이 좋다.
+     */
+    @Test
+    void tuple_projection() {
+        List<Tuple> result = queryFactory
+            .select(member.username, member.age)
+            .from(member)
+            .fetch();
+
+        for (Tuple tuple : result) {
+            String username = tuple.get(member.username);
+            Integer age = tuple.get(member.age);
+
+            System.out.println("username = " + username);
+            System.out.println("age = " + age);
+        }
+    }
 }
