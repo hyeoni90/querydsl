@@ -5,6 +5,7 @@ import static com.study.querydsl.entity.QMember.member;
 import static com.study.querydsl.entity.QTeam.team;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.ExpressionUtils;
@@ -746,5 +747,32 @@ class QuerydslBasicTest {
         for (MemberDto memberDto : result) {
             System.out.println("memberDto = " + memberDto);
         }
+    }
+
+    @Test
+    void dynamicQueryWithBooleanBuilder() {
+        String usernameParam = "member1";
+        Integer ageParam = 10;
+//        Integer ageParam = null;  // -> null 일때는 and 조건에 포함되지 않도록 해서 and 조건에서 빠지게 됨
+
+        List<Member> result = searchMember1(usernameParam, ageParam);
+        assertThat(result.size()).isEqualTo(1);
+    }
+
+    private List<Member> searchMember1(String usernameCond, Integer ageCond) {
+        BooleanBuilder builder = new BooleanBuilder();
+        if(usernameCond != null) {
+            // builder 에 and 조건을 넣어준다.
+            builder.and(member.username.eq(usernameCond));
+        }
+
+        if(ageCond != null) {
+            builder.and(member.age.eq(ageCond));
+        }
+
+        return queryFactory
+            .selectFrom(member)
+            .where(builder)
+            .fetch();
     }
 }
