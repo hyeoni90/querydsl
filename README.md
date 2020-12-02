@@ -141,6 +141,10 @@ cleanQuerydslSourcesDir > compileQuerydslJava
             .from(member)
             .fetch();
         ```
+### QueryProjection
+@QueryProjection
+.gradlew > compileQuerydsl 실행
+Dto도 Q 타입 파일로 생성된다.
 
 ## References
 * QueryDSL Documentation[http://www.querydsl.com/static/querydsl/4.4.0/reference/html_single/]
