@@ -878,4 +878,36 @@ class QuerydslBasicTest {
             .where(member.age.gt(17))
             .execute();
     }
+
+    /**
+     * H2 Dialect 에 registerFunction 에 등록되어 있..
+     */
+    @Test
+    void sqlFunction() {
+        List<String> result = queryFactory
+            .select(Expressions.stringTemplate(
+                "function('replace', {0}, {1}, {2})",
+                member.username, "member", "M"))
+            .from(member)
+            .fetch();
+
+        for (String s : result) {
+            System.out.println("s = " + s);
+        }
+    }
+
+    @Test
+    void sqlFunctionLowercase() {
+        List<String> result = queryFactory
+            .select(member.username)
+            .from(member)
+//            .where(member.username.eq(
+//                Expressions.stringTemplate("function('lower', {0})", member.username)))
+            .where(member.username.eq(member.username.lower()))
+            .fetch();
+
+        for (String s : result) {
+            System.out.println("s = " + s);
+        }
+    }
 }
