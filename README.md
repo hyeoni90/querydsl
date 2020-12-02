@@ -57,14 +57,14 @@ cleanQuerydslSourcesDir > compileQuerydslJava
 
 ## QueryDsl
 
-결과 조회
+### 결과 조회
 * fetch(): 리스트 조회, 데이터가 없으면 빈 리스트를 반환 한다.
 * fetchOne(): 단건 조회 (결과 없으면 null, 결과 2 이상이면 NonUniqueResultException)
 * fetchFirst(): limit(1).fetchOn() 
 * fetchResults(): 페이징 정보 포함, total count 쿼리 추가 실행 => 성능 때문에 contents, total count 가 다를경우 쿼리를 나눠서 실행한다! 
 * fetchCount(): count 쿼리로 변경해서 count 수 조회  
 
-ON 절을 활용한 조인 (JPA 2.1 부터 지원)
+### ON 절을 활용한 조인 (JPA 2.1 부터 지원)
 - 조인 대상 필터링
     - 외부 조인이 아니라 내부조인 (inner join) 사용 시 where 절에서 필터링 하는 것과 기능이 동일하다
      inner join 경우 where 절로 해결하고, 정말 외부 조인이 필요한 경우에만 사용하자!
@@ -80,7 +80,7 @@ ON 절을 활용한 조인 (JPA 2.1 부터 지원)
    ```
 - 연관관계 없는 엔티티 외부 조인 (주로 많이 쓰임)
 
-서브 쿼리
+### 서브 쿼리
 - JPAExpressions 사용
 - JPA JPQL 서브쿼리의 한계점
     - from절의 서브쿼리(인라인 뷰)는 지원하지 않는다. Querydsl도 지원하지 않는다.
@@ -93,7 +93,7 @@ ON 절을 활용한 조인 (JPA 2.1 부터 지원)
         2. application에서 query를 2번 분리해서 실행
         3. nativeSQL을 사용한다.
         ```
-문자열 더하기 (concat)
+### 문자열 더하기 (concat)
 - stringValue(): 문자가 아닌 다른 타입들은 해당 메서드를 통해서 문자로 변환 가능! (주로 ENUM을 처리할 떄 자주 사용)
     ```java
     List<String> result = queryFactory
@@ -102,6 +102,45 @@ ON 절을 활용한 조인 (JPA 2.1 부터 지원)
         .where(member.username.eq("member1"))
         .fetch();
     ```
+
+### Projection, DTO 조회
+1. 순수 JPA 에서 DTO를 조회할 때는 new 명령어를 사용해야 함. (DTO의 패키지 이름을 다 적어줘야함...)
+ - 생성자 방식만 지원!
+    ```java
+    List<MemberDto> result = em
+        .createQuery("select new com.study.querydsl.dto.MemberDto(m.username, m.age) from Member m", MemberDto.class)
+        .getResultList();
+    ```     
+2.  Querydsl 빈 생성(bean population) : 결과를 DTO 반환할 때 사용, 3가지 방법 지원.
+    - 프로퍼티 접근
+        ```java
+        List<MemberDto> result = queryFactory
+            .select(Projections.bean(MemberDto.class,
+                member.username,
+                member.age))
+            .from(member)
+            .fetch();
+        ```
+
+    - 필드 직접 접근
+        ```java
+        List<MemberDto> result = queryFactory
+            .select(Projections.fields(MemberDto.class,
+                member.username,
+                member.age))
+            .from(member)
+            .fetch();
+        ```
+
+    - 생성자 사용
+        ```java
+        List<MemberDto> result = queryFactory
+            .select(Projections.constructor(MemberDto.class,
+                member.username,
+                member.age))
+            .from(member)
+            .fetch();
+        ```
 
 ## References
 * QueryDSL Documentation[http://www.querydsl.com/static/querydsl/4.4.0/reference/html_single/]
