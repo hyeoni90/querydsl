@@ -9,7 +9,6 @@ import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.ExpressionUtils;
-import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.CaseBuilder;
@@ -32,6 +31,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.Commit;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -809,5 +809,73 @@ class QuerydslBasicTest {
 
     private BooleanExpression allEq(String usernameCond, Integer ageCond) {
         return usernameEq(usernameCond).and(ageEq(ageCond));
+    }
+
+    /**
+     * 영속성 컨텍스트 1차 캐시를 무시하고...
+     *
+     * 벌크 연산 후에는 꼭 영속성 컨텍스트를 초기화 하는 것이 좋다!!!
+     *   em.flush();
+     *   em.clear();
+     */
+    @Test
+    @Commit
+    void bulkUpdate() {
+
+        // member1 = 10 > DB member1
+        // member2 = 20 > DB member2
+        // member3 = 30 > DB member3
+        // member4 = 40 > DB member4
+
+        long count = queryFactory
+            .update(member)
+            .set(member.username, "비회원")
+            .where(member.age.lt(28))
+            .execute();
+
+
+        // 아래와 같은 일이 발생하지 않도록 하려면, 영속성 컨텍스트를 초기화 한다!
+        em.flush();
+        em.clear();
+
+        //1 member1 = 10 > DB 비회원
+        //2 member2 = 20 > DB 비회원
+        //3 member3 = 30 > DB member3
+        //4 member4 = 40 > DB member4
+
+        // DB 에서는 바로 위의 값을 가지고 와서 영속성 컨텍스트에 다시 넣어 주려고 할때
+        // 1 member1 가 영속성 컨텍스트에 이미 들어 있다면, DB 조회 값을 버리고 해당 값이 유지가 된다. (영속성 컨텍스트 우선순위가 높게 가져간다!)
+        // >> Reapeatable Read
+        List<Member> result = queryFactory
+            .selectFrom(member)
+            .fetch();
+
+        for (Member member1 : result) {
+            System.out.println("member1 = " + member1);
+        }
+    }
+
+    @Test
+    void bulkAdd() {
+        long count = queryFactory
+            .update(member)
+            .set(member.age, member.age.add(1))
+            .execute();
+    }
+
+    @Test
+    void bulkMutiply() {
+        long count = queryFactory
+            .update(member)
+            .set(member.age, member.age.multiply(3))
+            .execute();
+    }
+
+    @Test
+    void bulkDelete() {
+        long count = queryFactory
+            .delete(member)
+            .where(member.age.gt(17))
+            .execute();
     }
 }
