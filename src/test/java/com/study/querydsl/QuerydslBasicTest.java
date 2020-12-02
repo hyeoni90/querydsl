@@ -15,6 +15,7 @@ import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.study.querydsl.dto.MemberDto;
+import com.study.querydsl.dto.QMemberDto;
 import com.study.querydsl.dto.UserDto;
 import com.study.querydsl.entity.Member;
 import com.study.querydsl.entity.QMember;
@@ -688,6 +689,11 @@ class QuerydslBasicTest {
         }
     }
 
+    /**
+     * 프로티나, 필드 접근 생성 방식에서 이름이 다를 때 해결방안
+     * ExpressionUtils.as(source, alias) : 필드나 서브 쿼리에 별칭 적용
+     * username.as("memberName"): 필드에 별칭 적용
+     */
     @Test
     void findUserDto() {
         QMember memberSub = new QMember("memberSub");
@@ -708,6 +714,9 @@ class QuerydslBasicTest {
         }
     }
 
+    /**
+     * constructor에 member.id 필드 추가시  >> 런타임 오류로 알게된다.
+     */
     @Test
     void findUserDtoByConstuctor() {
         QMember memberSub = new QMember("memberSub");
@@ -721,6 +730,21 @@ class QuerydslBasicTest {
 
         for (UserDto userDto : result) {
             System.out.println("memberDto = " + userDto);
+        }
+    }
+
+    /**
+     * 그에 비해 QMemberDto는 컴파일 오류로 알 수 있다!
+     */
+    @Test
+    void findDtoByQueryProjection() {
+        List<MemberDto> result = queryFactory
+            .select(new QMemberDto(member.username, member.age))
+            .from(member)
+            .fetch();
+
+        for (MemberDto memberDto : result) {
+            System.out.println("memberDto = " + memberDto);
         }
     }
 }
