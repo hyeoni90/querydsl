@@ -158,6 +158,14 @@ Dto도 Q 타입 파일로 생성된다.
   루트 엔티티 범위를 넘어 가는 동적 정렬 기능이 필요하다면?
   spring data jpa Paging Sort 보다 파라미터 받아서 직접 처리하는 것 권장!!
 
+### Spring Data JPA가 제공하는 Querydsl 
+- 인터페이스 지원 : QuerydslPredicateExecutor
+    - Pageable, Sort 모두 지원 
+    
+    - left join 불가능
+    - client 가 Querydsl 에 의존 해야하며, 서비스 클래스가 Querydsl에 의존해야함
+    - 실무에서는 사용하기에는 어려움이 따른다. 
+    
 
 ## References
 * QueryDSL Documentation[http://www.querydsl.com/static/querydsl/4.4.0/reference/html_single/]
