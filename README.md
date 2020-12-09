@@ -151,5 +151,13 @@ Dto도 Q 타입 파일로 생성된다.
 - BooleanBuilder 사용 방법
 - Where 다중 파라미터 사용 방법
 
+### Spring Data JPA Sort(정렬)
+- Spring Data JPA는 sort를 Querydsl 정렬 (OrderSpecifier) 로 편리하게 변경하는 기능 제공
+- spring data jpa Sort -> OrderSpecifier 로 변환
+- but, 정렬 조건이 복잡해지면, Pageable 의 Sort 기능을 사용하기 어렵다.
+  루트 엔티티 범위를 넘어 가는 동적 정렬 기능이 필요하다면?
+  spring data jpa Paging Sort 보다 파라미터 받아서 직접 처리하는 것 권장!!
+
+
 ## References
 * QueryDSL Documentation[http://www.querydsl.com/static/querydsl/4.4.0/reference/html_single/]
