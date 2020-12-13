@@ -4,6 +4,7 @@ import static org.springframework.util.StringUtils.hasText;
 
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.jpa.JPQLQuery;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.study.querydsl.dto.MemberSearchCondition;
@@ -13,32 +14,41 @@ import com.study.querydsl.entity.Member;
 import com.study.querydsl.entity.QMember;
 import com.study.querydsl.entity.QTeam;
 import java.util.List;
+import javax.persistence.EntityManager;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.support.QuerydslRepositorySupport;
 import org.springframework.data.support.PageableExecutionUtils;
 
 /**
  * Created by hyeonahlee on 2020-12-04.
  */
-public class MemberRepositoryImpl implements MemberRepositoryCustom {
+public class MemberRepositoryImpl extends QuerydslRepositorySupport implements MemberRepositoryCustom {
 
     private final JPAQueryFactory queryFactory;
 
-    public MemberRepositoryImpl(JPAQueryFactory queryFactory) {
-        this.queryFactory = queryFactory;
+//    public MemberRepositoryImpl(JPAQueryFactory queryFactory) {
+//        this.queryFactory = queryFactory;
+//    }
+
+    /**
+     * Creates a new {@link QuerydslRepositorySupport} instance for the given domain type.
+     *
+     */
+    public MemberRepositoryImpl(EntityManager em) {
+        super(Member.class);
+        this.queryFactory = new JPAQueryFactory(em);
     }
 
     @Override
     public List<MemberTeamDto> search(MemberSearchCondition condition) {
-        return queryFactory
-            .select(new QMemberTeamDto(
-                QMember.member.id.as("memberId"),
-                QMember.member.username,
-                QMember.member.age,
-                QTeam.team.id.as("teamId"),
-                QTeam.team.name.as("teamName")))
-            .from(QMember.member)
+
+        // QuerydslRepositorySupport 상속 후 )
+        // entityManager를 가져와서 쓸 수 도 있다.
+        EntityManager entityManager = getEntityManager();
+
+        List<MemberTeamDto> result = from(QMember.member)
             .leftJoin(QMember.member.team, QTeam.team)
             .where(
                 usernameEq(condition.getUsername()),
@@ -46,7 +56,32 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom {
                 ageGoe(condition.getAgeGoe()),
                 ageLoe(condition.getAgeLoe())
             )
+            .select(new QMemberTeamDto(
+                QMember.member.id.as("memberId"),
+                QMember.member.username,
+                QMember.member.age,
+                QTeam.team.id.as("teamId"),
+                QTeam.team.name.as("teamName")))
             .fetch();
+
+        // QuerydslRepositorySupport 상속 전 )
+//        return queryFactory
+//            .select(new QMemberTeamDto(
+//                QMember.member.id.as("memberId"),
+//                QMember.member.username,
+//                QMember.member.age,
+//                QTeam.team.id.as("teamId"),
+//                QTeam.team.name.as("teamName")))
+//            .from(QMember.member)
+//            .leftJoin(QMember.member.team, QTeam.team)
+//            .where(
+//                usernameEq(condition.getUsername()),
+//                teamNameEq(condition.getTeamName()),
+//                ageGoe(condition.getAgeGoe()),
+//                ageLoe(condition.getAgeLoe())
+//            )
+//            .fetch();
+        return result;
     }
 
     @Override
@@ -74,6 +109,30 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom {
         long total = results.getTotal();
 
         return new PageImpl<>(content, pageable, total);
+    }
+
+    public Page<MemberTeamDto> searchPageSimple2(MemberSearchCondition condition, Pageable pageable) {
+        JPQLQuery<MemberTeamDto> jpaQuery = from(QMember.member)
+            .leftJoin(QMember.member.team, QTeam.team)
+            .where(
+                usernameEq(condition.getUsername()),
+                teamNameEq(condition.getTeamName()),
+                ageGoe(condition.getAgeGoe()),
+                ageLoe(condition.getAgeLoe())
+            )
+            .select(new QMemberTeamDto(
+                QMember.member.id.as("memberId"),
+                QMember.member.username,
+                QMember.member.age,
+                QTeam.team.id.as("teamId"),
+                QTeam.team.name.as("teamName")));
+
+        // offset, limit, sort 적용됨! , getQuerydsl() util 클래스 사용..
+        JPQLQuery<MemberTeamDto> query = getQuerydsl().applyPagination(pageable, jpaQuery);
+
+        List<MemberTeamDto> result = query.fetch();
+
+        return new PageImpl<>(result);
     }
 
     @Override
