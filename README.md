@@ -167,5 +167,24 @@ Dto도 Q 타입 파일로 생성된다.
     - 실무에서는 사용하기에는 어려움이 따른다. 
     
 
+### Querydsl Web 지원 
+* Docs [https://docs.spring.io/spring-data/jpa/docs/current/reference/html/#core.web]
+* 기능 제약이 많고, 커스텀 하는 기능이 복잡하고 명시적이지 않다.
+* Controller가 Querydsl에 의존
+* 복잡한 실무에서는 사용하는데 한계가 있음.
+
+### Querydsl Repository 지원 (QuerydslRepositorySupport)
+* spring data가 제공하는 페이징을 Querydsl로 편리하게 변환 가능. 
+    - getQuerydsl().applyPagination() 
+    - but,, Sort 오류가 발생한다!
+*  `from` 으로 시작 ㄱ능하다. (최근에는 QueryFactory를 사용해서 `select` 로 시작하는 것이 명시적이다!!)
+* EntityManager 제공
+
+* Querydsl 3.x 버전을 대상으로 만든다.
+* Querydsl 4.x 에 나온 JPAQueryFactory 로 시작할 수 없다.
+    * select로 시작할 수 없음 (from 으로 시작해야함)
+* `QueryFactory` 제공하지 않음
+* spring data sort 기능이 정상적으로 동작하지 않는다... 두둥
+
 ## References
 * QueryDSL Documentation[http://www.querydsl.com/static/querydsl/4.4.0/reference/html_single/]
